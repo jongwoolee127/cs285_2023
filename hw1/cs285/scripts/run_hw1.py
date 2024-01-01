@@ -20,6 +20,10 @@ from cs285.infrastructure.replay_buffer import ReplayBuffer
 from cs285.policies.MLP_policy import MLPPolicySL
 from cs285.policies.loaded_gaussian_policy import LoadedGaussianPolicy
 
+# added to turn of deprecation warning
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="tensorboardX.*")
+
 
 # how many rollouts to save as videos to tensorboard
 MAX_NVIDEO = 2
