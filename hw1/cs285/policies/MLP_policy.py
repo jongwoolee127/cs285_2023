@@ -20,6 +20,11 @@ from torch import distributions
 from cs285.infrastructure import pytorch_util as ptu
 from cs285.policies.base_policy import BasePolicy
 
+import ipdb
+# added to turn of deprecation warning
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 
 def build_mlp(
         input_size: int,
@@ -129,7 +134,10 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         # through it. For example, you can return a torch.FloatTensor. You can also
         # return more flexible objects, such as a
         # `torch.distributions.Distribution` object. It's up to you!
-        raise NotImplementedError
+        # ipdb.set_trace()
+
+        return distributions.Normal(self.mean_net(observation), torch.exp(self.logstd)[None])
+        # raise NotImplementedError
 
     def update(self, observations, actions):
         """
@@ -141,8 +149,24 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             dict: 'Training Loss': supervised learning loss
         """
         # TODO: update the policy and return the loss
-        loss = TODO
+        # loss = TODO
+        # ipdb.set_trace()
+        # dist = self.forward(ptu.from_numpy(observations))
+        dist = self(ptu.from_numpy(observations)) # better avoiding using .forward()
+
+        loss = -dist.log_prob(ptu.from_numpy(actions)).sum()
+        # loss = loss.detach()
+
+        
+        # training the policy
+        if self.training:
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+
+
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),
         }
+
